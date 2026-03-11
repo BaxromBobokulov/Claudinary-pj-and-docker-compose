@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=test-compose
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "2020:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    # .env faylidagi barcha o'zgaruvchilarni (Cloudinary ham shunda) avtomatik yuklaydi
+    env_file:
+      - .env
+    environment:
+      # DATABASE_URL ni shu yerda qoldirdim, chunki u "db" servisiga bog'liq
+      - DATABASE_URL=postgresql://postgres:1234@db:5432/test-compose
+    command: sh -c "npx prisma migrate deploy && npm run start:dev"
