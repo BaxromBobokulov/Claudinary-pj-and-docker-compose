@@ -1,26 +1,38 @@
 services:
+  # Database xizmati
   db:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
+    container_name: voltcloud_db
+    restart: always
+    env_file:
+      - .env  # <--- Mana shu qator .env ichidagi DB_USER larni o'qiydi
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=1234
-      - POSTGRES_DB=test-compose
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      retries: 5
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
+  # NestJS ilovasi
   app:
     build: .
-    ports:
-      - "2020:3000"
-    depends_on:
-      db:
-        condition: service_healthy
-    # .env faylidagi barcha o'zgaruvchilarni (Cloudinary ham shunda) avtomatik yuklaydi
+    container_name: voltcloud_app
+    restart: always
     env_file:
-      - .env
+      - .env  # <--- Bot token va Cloudinary keylarni shu yerdan oladi
+    ports:
+      - "3000:3000"
     environment:
-      # DATABASE_URL ni shu yerda qoldirdim, chunki u "db" servisiga bog'liq
-      - DATABASE_URL=postgresql://postgres:1234@db:5432/test-compose
-    command: sh -c "npx prisma migrate deploy && npm run start:dev"
+      # db:5432 - bu docker tarmog'idagi bazaning manzili
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public"
+      BOT_TOKEN: ${BOT_TOKEN}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

@@ -4,10 +4,19 @@ import { CloudinaryModule } from 'nestjs-cloudinary';
 import { FileUploadModule } from './modules/file-upload/file-upload.module';
 import { UsersModule } from './modules/users/users.module';
 import { DatabaseModule } from './core/database/database.module';
+import { TelegrafModule } from 'nestjs-telegraf';
+import { BotUpdate } from './modules/bot/bot.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    TelegrafModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        token: configService.get<string>('BOT_TOKEN')!,
+      }),
+      inject: [ConfigService]
+    }),
     CloudinaryModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -20,6 +29,7 @@ import { DatabaseModule } from './core/database/database.module';
     FileUploadModule,
     UsersModule,
     DatabaseModule,
-  ]
+  ],
+  providers: [BotUpdate]
 })
 export class AppModule { }

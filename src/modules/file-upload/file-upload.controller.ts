@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Res } from '@nestjs/common';
 import { FileUploadService } from './file-upload.service';
-import { CreateFileUploadDto } from './dto/create-file-upload.dto';
-import { UpdateFileUploadDto } from './dto/update-file-upload.dto';
 import { CloudinaryService } from 'nestjs-cloudinary';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
+import { Context } from 'telegraf';
 
 @Controller('file-upload')
 export class FileUploadController {
@@ -13,35 +13,33 @@ export class FileUploadController {
 
   @Post()
   @UseInterceptors(FileInterceptor('file'))
-  async create(@Body() createFileUploadDto: CreateFileUploadDto,
-    @UploadedFile() file: Express.Multer.File) {
-    const { url } = await this.cloudinaryService.uploadFile(file)
-
-    return {
-      success: true,
-      message: "Posted brother",
-      url
-      // url: this.fileUploadService.create(createFileUploadDto, url)
-    }
+  async create(@UploadedFile() file: Express.Multer.File) {
+    const UploadFile = await this.cloudinaryService.uploadFile(file)
+    // return this.fileUploadService.create(UploadFile)
   }
 
-  @Get()
-  findAll() {
-    return this.fileUploadService.findAll();
+
+  @Get(':shortCode')
+  findAll(@Param('shortCode') shortCode: string, @Res() res: Response) {
+    return this.fileUploadService.getPicture(shortCode, res);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.fileUploadService.findOne(+id);
+
+  @Get('stats/:shortCode')
+  findOne(@Param('shortCode') shortCode: string) {
+    return this.fileUploadService.stats(shortCode);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFileUploadDto: UpdateFileUploadDto) {
-    return this.fileUploadService.update(+id, updateFileUploadDto);
-  }
+  @Get('files/:page/:limit')
+  files(
+    @Param('page') page : string,
+    @Param('limit') limit : string
+  ){
+    // return this.fileUploadService.myFiles(+page,+limit)
 
+  }
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.fileUploadService.remove(+id);
+    return this.fileUploadService.remove(id);
   }
 }
