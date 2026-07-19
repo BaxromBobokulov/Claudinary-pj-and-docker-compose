@@ -25,7 +25,7 @@ async create(payload: any, userId: string) {
     });
 
     return {
-      shortUrl: `http://localhost:3000/file-upload/${savedResource.shortCode}`
+      shortUrl: `https://voltcloud-production.up.railway.app/${savedResource.shortCode}`
     };
 }
 
