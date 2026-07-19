@@ -1,36 +1,29 @@
 services:
-  # Database xizmati
   db:
     image: postgres:15-alpine
     container_name: voltcloud_db
     restart: always
-    env_file:
-      - .env  # <--- Mana shu qator .env ichidagi DB_USER larni o'qiydi
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: voltcloud
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # NestJS ilovasi
   app:
     build: .
     container_name: voltcloud_app
     restart: always
-    env_file:
-      - .env  # <--- Bot token va Cloudinary keylarni shu yerdan oladi
-    ports:
-      - "3000:3000"
     environment:
-      # db:5432 - bu docker tarmog'idagi bazaning manzili
-      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public"
+      DATABASE_URL: "postgresql://postgres:1234@db:5432/voltcloud?schema=public"
       BOT_TOKEN: ${BOT_TOKEN}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+    ports:
+      - "2020:3000"
     depends_on:
       - db
 

@@ -1,25 +1,10 @@
-# Ignore node modules and local build artifacts
 node_modules
 dist
-build
-coverage
-
-# Logs
-npm-debug.log
-yarn-debug.log
-yarn-error.log
-*.log
-
-# Environment and secrets
-.env
-.env.local
-.env.*.local
-
-# VCS and editor
 .git
 .gitignore
 .vscode
-.idea
-
-# OS files
+.env
+*.log
+npm-debug.log*
+README.md
 .DS_Store
