@@ -25,7 +25,7 @@ async create(payload: any, userId: string) {
     });
 
     return {
-      shortUrl: `https://voltcloud-production.up.railway.app/${savedResource.shortCode}`
+      shortUrl: `${process.env.BASE_URL}/${savedResource.shortCode}`
     };
 }
 
@@ -61,7 +61,7 @@ async create(payload: any, userId: string) {
     }
 
     return {
-      link: `http://localhost:3000/file-upload/${shortCode}`,
+      link: `${process.env.BASE_URL}/file-upload/${shortCode}`,
       count: resource.clicks
     }
   }
