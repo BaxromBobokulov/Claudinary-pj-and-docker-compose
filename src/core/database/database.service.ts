@@ -5,7 +5,7 @@ import { Pool } from "pg"
 
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleInit {
+export class PrismaService extends PrismaClient implements OnModuleInit {
     constructor() {
         const connectionString = process.env.DATABASE_URL
         if (!connectionString) throw new Error("Config ishlamadi")
