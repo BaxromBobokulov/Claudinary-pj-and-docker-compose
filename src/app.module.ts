@@ -21,7 +21,7 @@ import { BotUpdate } from './modules/bot/bot.controller';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService : ConfigService) => ({
-        cloud_name : configService.get<string>('CLOUD_NAME'),
+        cloud_name : configService.get<string>('CLOUDINARY_CLOUD_NAME') || configService.get<string>('CLOUD_NAME'),
         api_key: configService.get<string>('CLOUDINARY_API_KEY'),
         api_secret : configService.get<string>('CLOUDINARY_API_SECRET')
       }),

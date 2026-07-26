@@ -25,7 +25,7 @@ async create(payload: any, userId: string) {
     });
 
     return {
-      shortUrl: `${process.env.BASE_URL}/${savedResource.shortCode}`
+      shortUrl: `${process.env.BASE_URL}/file-upload/${savedResource.shortCode}`
     };
 }
 
@@ -105,8 +105,10 @@ async create(payload: any, userId: string) {
     }
   }
 
-  async uploadFromUrl(url: string) {
-    const result = await this.cloudinaryService.cloudinary.uploader.upload(url)
-    return result
+  async uploadFromUrl(url: string, resourceType: 'image' | 'video' | 'raw' = 'image') {
+    const result = await this.cloudinaryService.cloudinary.uploader.upload(url, {
+      resource_type: resourceType,
+    });
+    return result;
   }
 }

@@ -1,26 +1,44 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { PrismaService } from 'src/core/database/database.service';
+
+export interface TelegramUserData {
+  telegramId: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+}
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async upsertTelegramUser(data: TelegramUserData) {
+    return this.prisma.user.upsert({
+      where: { telegramId: data.telegramId },
+      update: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        username: data.username,
+      },
+      create: {
+        telegramId: data.telegramId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        username: data.username,
+      },
+    });
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findByTelegramId(telegramId: string) {
+    return this.prisma.user.findUnique({
+      where: { telegramId },
+      include: { resources: true },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async findAll() {
+    return this.prisma.user.findMany({
+      include: { _count: { select: { resources: true } } },
+    });
   }
 }
