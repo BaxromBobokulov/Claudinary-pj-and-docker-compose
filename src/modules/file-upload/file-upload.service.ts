@@ -25,7 +25,7 @@ async create(payload: any, userId: string) {
     });
 
     return {
-      shortUrl: `${process.env.BASE_URL}/file-upload/${savedResource.shortCode}`
+      shortUrl: `${process.env.BASE_URL}/${savedResource.shortCode}`
     };
 }
 

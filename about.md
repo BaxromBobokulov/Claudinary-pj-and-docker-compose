@@ -14,7 +14,7 @@
 3. **Daily Upload Limits**: The bot enforces a maximum daily limit of **3 file uploads per user per day** (all formats combined).
 4. **Cloud Storage**: Files are downloaded from Telegram API and uploaded to **Cloudinary** with the correct `resource_type` (`image`, `video`, or `raw`).
 5. **URL Shortening**: A unique 6-character short code is generated using `nanoid` (e.g., `aB3x9Z`) and saved to the `Resource` table in PostgreSQL.
-6. **Analytics & Redirect**: Short URLs follow the format `${BASE_URL}/file-upload/${shortCode}`. When accessed in a browser, the backend increments the `clicks` counter in DB and redirects (`302`) to the original Cloudinary media URL.
+6. **Analytics & Redirect**: Short URLs follow the format `${BASE_URL}/${shortCode}`. When accessed in a browser, the backend increments the `clicks` counter in DB and redirects (`302`) to the original Cloudinary media URL.
 
 ---
 
@@ -51,6 +51,7 @@ Claude_bulut/
 │       │   ├── file-upload.module.ts
 │       │   ├── file-upload.service.ts
 │       │   ├── file-upload.controller.ts
+│       │   ├── redirect.controller.ts  # Root-level /:shortCode redirect
 │       │   ├── dto/
 │       │   └── entities/
 │       └── users/             # User management and Telegram profile sync
@@ -100,14 +101,15 @@ model Resource {
 
 ## 5. 🌐 API Routes & Telegram Commands
 
-### HTTP API Endpoints (`@Controller('file-upload')` & `@Controller('users')`):
-| Method | Route | Description |
-| :--- | :--- | :--- |
-| `GET` | `/file-upload/:shortCode` | Increments `clicks` counter and redirects to original Cloudinary URL |
-| `GET` | `/file-upload/stats/:shortCode` | Returns JSON stats: `{ link, count }` |
-| `DELETE` | `/file-upload/:id` | Deletes resource from DB and removes file from Cloudinary |
-| `GET` | `/users` | Lists all registered Telegram users with total uploaded count |
-| `GET` | `/users/:telegramId` | Gets specific user details with their uploaded resources |
+### HTTP API Endpoints:
+| Method | Route | Controller | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/:shortCode` | `RedirectController` | Root-level redirect — increments `clicks` and redirects to Cloudinary URL |
+| `GET` | `/file-upload/:shortCode` | `FileUploadController` | Legacy redirect (same logic as above) |
+| `GET` | `/file-upload/stats/:shortCode` | `FileUploadController` | Returns JSON stats: `{ link, count }` |
+| `DELETE` | `/file-upload/:id` | `FileUploadController` | Deletes resource from DB and removes file from Cloudinary |
+| `GET` | `/users` | `UsersController` | Lists all registered Telegram users with total uploaded count |
+| `GET` | `/users/:telegramId` | `UsersController` | Gets specific user details with their uploaded resources |
 
 ### Telegram Bot Commands & Handlers:
 * `/start` — Welcomes user, syncs profile to DB, displays inline keyboard.
@@ -137,7 +139,7 @@ BASE_URL=
 1. **Prisma 7 Compatibility**:
    - **DO NOT** add `url = env("DATABASE_URL")` inside `schema.prisma` under `datasource db`. Prisma 7 deprecates datasource URLs in schema files. Connection URLs are managed via `prisma.config.mjs` and `PrismaService` `@prisma/adapter-pg`.
 2. **Short URL Format**:
-   - Short URLs **MUST ALWAYS** include the `/file-upload/` path prefix: `${process.env.BASE_URL}/file-upload/${shortCode}`.
+   - Short URLs use **root-level** paths: `${process.env.BASE_URL}/${shortCode}`. The `RedirectController` handles `/:shortCode` at the root level. Legacy `/file-upload/:shortCode` also works.
 3. **User Profile Sync**:
    - Any new bot trigger or handler must invoke `this.usersService.upsertTelegramUser(...)` before executing action logic.
 4. **Code Cleanliness**:
